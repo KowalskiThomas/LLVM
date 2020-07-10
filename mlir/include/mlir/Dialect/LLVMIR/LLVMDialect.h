@@ -190,11 +190,11 @@ public:
     return setStructTyBody(structType, fields);
   }
 
-private:
-  friend LLVMDialect;
-
   /// Get an LLVMType with a pre-existing llvm type.
   static LLVMType get(MLIRContext *context, llvm::Type *llvmType);
+
+private:
+  friend LLVMDialect;
 
   /// Get an LLVMType with an llvm type that may cause changes to the underlying
   /// llvm context when constructed.

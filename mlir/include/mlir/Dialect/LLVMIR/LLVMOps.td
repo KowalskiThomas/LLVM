@@ -229,8 +229,8 @@ def LLVM_AllocaOp :
     $res = alloca;
   }];
   let builders = [OpBuilder<
-    "Builder *b, OperationState &result, Type resultType, Value arraySize, "
-    "unsigned alignment",
+        "Builder *b, OperationState &result, Type resultType, Value arraySize, "
+        "unsigned alignment",
     [{
       if (alignment == 0)
         return build(b, result, resultType, arraySize, IntegerAttr());
@@ -353,7 +353,20 @@ def LLVM_CallOp : LLVM_Op<"call">,
       result.addAttribute("callee", builder->getSymbolRefAttr(func));
       result.addAttributes(attributes);
       result.addOperands(operands);
-    }]>];
+    }]>,
+    OpBuilder<
+            "Builder *builder, OperationState &result, Value func,"
+            "ValueRange operands, ArrayRef<NamedAttribute> attributes = {}",
+    [{
+        LLVMType resultType = func.getType().cast<mlir::LLVM::LLVMType>().getPointerElementTy().getFunctionResultType();
+        if (!resultType.isVoidTy())
+            result.addTypes(resultType);
+
+        result.addAttributes(attributes);
+        result.addOperands(ValueRange { func });
+        result.addOperands(operands);
+        }]>
+    ];
   let verifier = [{
     if (getNumResults() > 1)
       return emitOpError("must have 0 or 1 result");
@@ -362,6 +375,39 @@ def LLVM_CallOp : LLVM_Op<"call">,
   let parser = [{ return parseCallOp(parser, result); }];
   let printer = [{ printCallOp(p, *this); }];
 }
+
+/*
+def LLVM_CallValueOp : LLVM_Op<"callvalue">,
+        Arguments<(ins LLVM_Type:$callee, Variadic<LLVM_Type>)>,
+        Results<(outs Variadic<LLVM_Type>)> {
+
+    string llvmBuilder = [{
+        auto type = static_cast<llvm::FunctionType*>($callee->getType()); // ->cast<FunctionType*>();
+        builder.CreateCall(type, $callee, $ins);
+    }];
+
+    let builders = [OpBuilder<
+            "Builder *builder, OperationState &result, Value func,"
+            "ValueRange operands, ArrayRef<NamedAttribute> attributes = {}",
+    [{
+        LLVMType resultType = func.getType().cast<LLVMType>().getFunctionResultType();
+        if (!resultType.isVoidTy())
+            result.addTypes(resultType);
+        result.addAttributes(attributes);
+        result.addOperands(operands);
+    }]>
+    ];
+
+    let verifier = [{
+        if (getNumResults() > 1)
+            return emitOpError("must have 0 or 1 result");
+        return success();
+    }];
+    // let parser = [{ return parseCallOp(parser, result); }];
+    // let printer = [{ printCallValueOp(p, *this); }];
+}
+*/
+
 def LLVM_ExtractElementOp : LLVM_OneResultOp<"extractelement", [NoSideEffect]>,
                           Arguments<(ins LLVM_Type:$vector,
                                      LLVM_Type:$position)> {
@@ -482,8 +528,7 @@ def LLVM_CondBrOp : LLVM_TerminatorOp<"cond_br",
     "Builder *builder, OperationState &result, Value condition,"
     "Block *trueDest, ValueRange trueOperands,"
     "Block *falseDest, ValueRange falseOperands", [{
-      build(builder, result, condition, trueOperands, falseOperands, trueDest,
-            falseDest);
+      build(builder, result, condition, trueOperands, falseOperands, trueDest, falseDest);
   }]>, OpBuilder<
     "Builder *builder, OperationState &result, Value condition,"
     "Block *trueDest, Block *falseDest, ValueRange falseOperands = {}", [{
@@ -758,6 +803,11 @@ def LLVM_DialectCastOp : LLVM_Op<"mlir.cast", [NoSideEffect]>,
 // operations and intrinsics. However, we systematically prefix them with
 // "intr." to avoid potential name clashes.
 
+class LLVM_NoArgsIntrinsicOp<string func, list<OpTrait> traits = []> :
+    LLVM_OneResultIntrOp<func, [], [],
+    !listconcat([NoSideEffect], traits)>,
+    Arguments<(ins )>;
+
 class LLVM_UnaryIntrinsicOp<string func, list<OpTrait> traits = []> :
     LLVM_OneResultIntrOp<func, [], [0],
            !listconcat([NoSideEffect, SameOperandsAndResultType], traits)>,
@@ -789,7 +839,20 @@ def LLVM_Prefetch : LLVM_ZeroResultIntrOp<"prefetch", [0]>,
                                LLVM_Type:$hint, LLVM_Type:$cache)>;
 def LLVM_SqrtOp : LLVM_UnaryIntrinsicOp<"sqrt">;
 
-//
+def LLVM_StackSaveOp : LLVM_NoArgsIntrinsicOp<"stacksave">;
+def LLVM_StackRestoreOp : LLVM_ZeroResultIntrOp<"stackrestore">,
+                            Arguments<(ins LLVM_Type:$state)>;
+
+class LLVM_MemCpyLikeOp<string func, list<OpTrait> traits = []> :
+        LLVM_ZeroResultIntrOp<func, [0, 1, 2], traits>;
+
+def LLVM_MemCpyOp : LLVM_MemCpyLikeOp<"memcpy">,
+    Arguments<(ins LLVM_Type:$dest, LLVM_Type:$from, LLVM_Type:$n, LLVM_Type:$isVolatile)>;
+
+def LLVM_MemCpyInlineOp : LLVM_MemCpyLikeOp<"memcpy.inline">,
+    Arguments<(ins LLVM_Type:$dest, LLVM_Type:$from, LLVM_Type:$n, LLVM_Type:$isVolatile)>;
+
+
 // Vector Reductions.
 //
 
