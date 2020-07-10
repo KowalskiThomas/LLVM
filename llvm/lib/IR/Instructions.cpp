@@ -442,12 +442,20 @@ void CallInst::init(FunctionType *FTy, Value *Func, ArrayRef<Value *> Args,
 #ifndef NDEBUG
   assert((Args.size() == FTy->getNumParams() ||
           (FTy->isVarArg() && Args.size() > FTy->getNumParams())) &&
-         "Calling a function with bad signature!");
+         "Calling a function with bad signature! (parameters count mismatch)");
 
-  for (unsigned i = 0; i != Args.size(); ++i)
+  for (unsigned i = 0; i != FTy->getNumParams(); ++i) {
+    if (Args[i]->getType() != FTy->getParamType(i)) {
+      llvm::outs() << "Type " << i << " is mismatched\n";
+      llvm::outs() << "Expected " << *FTy->getParamType(i) << '\n';;
+      llvm::outs() << "Got " << *Args[i]->getType() << '\n';
+      llvm::outs().flush();
+      assert(Args[i]->getType() == FTy->getParamType(i) && "Argument types mismatch");
+    }
     assert((i >= FTy->getNumParams() ||
             FTy->getParamType(i) == Args[i]->getType()) &&
            "Calling a function with a bad signature!");
+  }
 #endif
 
   llvm::copy(Args, op_begin());

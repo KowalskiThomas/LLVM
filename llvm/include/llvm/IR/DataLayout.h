@@ -633,6 +633,11 @@ private:
 // The implementation of this method is provided inline as it is particularly
 // well suited to constant folding when called on a specific Type subclass.
 inline TypeSize DataLayout::getTypeSizeInBits(Type *Ty) const {
+#ifndef NDEBUG
+  if (!Ty->isSized()) {
+      llvm::errs() << "getTypeSizeInBits called on unsized type " << *Ty << '\n';
+  }
+#endif
   assert(Ty->isSized() && "Cannot getTypeInfo() on a type that is unsized!");
   switch (Ty->getTypeID()) {
   case Type::LabelTyID:

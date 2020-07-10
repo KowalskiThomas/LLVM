@@ -3267,7 +3267,11 @@ void Verifier::visitICmpInst(ICmpInst &IC) {
   Type *Op0Ty = IC.getOperand(0)->getType();
   Type *Op1Ty = IC.getOperand(1)->getType();
   Assert(Op0Ty == Op1Ty,
-         "Both operands to ICmp instruction are not of the same type!", &IC);
+         "Both operands to ICmp instruction are not of the same type!",
+         &IC,
+         Op0Ty,
+         Op1Ty
+    );
   // Check that the operands are the right type
   Assert(Op0Ty->isIntOrIntVectorTy() || Op0Ty->isPtrOrPtrVectorTy(),
          "Invalid operand types for ICmp instruction", &IC);
@@ -3332,7 +3336,10 @@ void Verifier::visitGetElementPtrInst(GetElementPtrInst &GEP) {
 
   Assert(GEP.getType()->isPtrOrPtrVectorTy() &&
              GEP.getResultElementType() == ElTy,
-         "GEP is not of right type for indices!", &GEP, ElTy);
+         "GEP is not of right type for indices!\n",
+         &GEP,
+         GEP.getResultElementType(),
+         ElTy);
 
   if (auto *GEPVTy = dyn_cast<VectorType>(GEP.getType())) {
     // Additional checks for vector GEPs.

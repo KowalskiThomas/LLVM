@@ -2125,9 +2125,19 @@ Constant *ConstantExpr::getGetElementPtr(Type *Ty, Constant *C,
                                          Type *OnlyIfReducedTy) {
   if (!Ty)
     Ty = cast<PointerType>(C->getType()->getScalarType())->getElementType();
-  else
+  else {
+#ifndef NDEBUG
+    if (Ty != cast<PointerType>(C->getType()->getScalarType())->getElementType()) {
+      llvm::errs() << "GEP Types do not match!\n";
+      llvm::errs() << "Expected type: " << *Ty << '\n';
+      llvm::errs() << "Actual type in aggregate: "
+                   << *cast<PointerType>(C->getType()->getScalarType())->getElementType() << '\n';
+      llvm::errs().flush();
+    }
     assert(Ty ==
            cast<PointerType>(C->getType()->getScalarType())->getElementType());
+#endif
+  }
 
   if (Constant *FC =
           ConstantFoldGetElementPtr(Ty, C, InBounds, InRangeIndex, Idxs))

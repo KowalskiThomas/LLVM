@@ -481,8 +481,9 @@ StructType *StructType::create(ArrayRef<Type*> Elements) {
 bool StructType::isSized(SmallPtrSetImpl<Type*> *Visited) const {
   if ((getSubclassData() & SCDB_IsSized) != 0)
     return true;
-  if (isOpaque())
+  if (isOpaque()) {
     return false;
+  }
 
   if (Visited && !Visited->insert(const_cast<StructType*>(this)).second)
     return false;
