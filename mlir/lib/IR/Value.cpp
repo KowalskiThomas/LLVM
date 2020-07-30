@@ -17,6 +17,12 @@ using namespace mlir;
 Value::Value(detail::BlockArgumentImpl *impl)
     : ownerAndKind(impl, Kind::BlockArgument) {}
 Value::Value(Operation *op, unsigned resultNo) {
+#ifndef NDEBUG
+  if (op->getNumResults() <= resultNo) {
+    llvm::errs() << "Bad num results (" << resultNo << " too large) in " << *op << '\n';
+    llvm::errs().flush();
+  }
+#endif
   assert(op->getNumResults() > resultNo && "invalid result number");
   if (LLVM_LIKELY(canPackResultInline(resultNo))) {
     ownerAndKind = {op, static_cast<Kind>(resultNo)};
