@@ -376,38 +376,6 @@ def LLVM_CallOp : LLVM_Op<"call">,
   let printer = [{ printCallOp(p, *this); }];
 }
 
-/*
-def LLVM_CallValueOp : LLVM_Op<"callvalue">,
-        Arguments<(ins LLVM_Type:$callee, Variadic<LLVM_Type>)>,
-        Results<(outs Variadic<LLVM_Type>)> {
-
-    string llvmBuilder = [{
-        auto type = static_cast<llvm::FunctionType*>($callee->getType()); // ->cast<FunctionType*>();
-        builder.CreateCall(type, $callee, $ins);
-    }];
-
-    let builders = [OpBuilder<
-            "Builder *builder, OperationState &result, Value func,"
-            "ValueRange operands, ArrayRef<NamedAttribute> attributes = {}",
-    [{
-        LLVMType resultType = func.getType().cast<LLVMType>().getFunctionResultType();
-        if (!resultType.isVoidTy())
-            result.addTypes(resultType);
-        result.addAttributes(attributes);
-        result.addOperands(operands);
-    }]>
-    ];
-
-    let verifier = [{
-        if (getNumResults() > 1)
-            return emitOpError("must have 0 or 1 result");
-        return success();
-    }];
-    // let parser = [{ return parseCallOp(parser, result); }];
-    // let printer = [{ printCallValueOp(p, *this); }];
-}
-*/
-
 def LLVM_ExtractElementOp : LLVM_OneResultOp<"extractelement", [NoSideEffect]>,
                           Arguments<(ins LLVM_Type:$vector,
                                      LLVM_Type:$position)> {
@@ -627,7 +595,7 @@ def LLVM_AddressOfOp
       result.addTypes(resType);}]>,
 
     OpBuilder<"Builder *builder, OperationState &result, GlobalOp global, "
-              "ArrayRef<NamedAttribute> attrs = {}", [{
+"ArrayRef<NamedAttribute> attrs = {}", [{
       build(builder, result,
             global.getType().getPointerTo(global.addr_space().getZExtValue()),
             global.sym_name(), attrs);}]>
