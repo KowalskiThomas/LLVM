@@ -177,12 +177,15 @@ CallGraphNode *CallGraph::getOrInsertFunction(const Function *F) {
   if (CGN)
     return CGN.get();
 
+/* Begin modifications by Thomas Kowalski for LLVMSQLite */
 #ifndef NDEBUG
   if (!(!F || F->getParent() == &M)) {
     llvm::errs() << "Function not in current module: " << F->getName() << '\n';
     llvm::errs().flush();
   }
 #endif
+/* End modifications by Thomas Kowalski for LLVMSQLite */
+
   assert((!F || F->getParent() == &M) && "Function not in current module!");
   CGN = std::make_unique<CallGraphNode>(const_cast<Function *>(F));
   return CGN.get();

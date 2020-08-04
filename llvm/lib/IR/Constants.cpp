@@ -2126,6 +2126,7 @@ Constant *ConstantExpr::getGetElementPtr(Type *Ty, Constant *C,
   if (!Ty)
     Ty = cast<PointerType>(C->getType()->getScalarType())->getElementType();
   else {
+/* Begin modifications by Thomas Kowalski for LLVMSQLite */
 #ifndef NDEBUG
     if (Ty != cast<PointerType>(C->getType()->getScalarType())->getElementType()) {
       llvm::errs() << "GEP Types do not match!\n";
@@ -2137,6 +2138,7 @@ Constant *ConstantExpr::getGetElementPtr(Type *Ty, Constant *C,
     assert(Ty ==
            cast<PointerType>(C->getType()->getScalarType())->getElementType());
 #endif
+/* End modifications by Thomas Kowalski for LLVMSQLite */
   }
 
   if (Constant *FC =

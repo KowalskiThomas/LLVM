@@ -439,6 +439,7 @@ void CallInst::init(FunctionType *FTy, Value *Func, ArrayRef<Value *> Args,
          "NumOperands not set up?");
   setCalledOperand(Func);
 
+/* Begin modifications by Thomas Kowalski for LLVMSQLite */
 #ifndef NDEBUG
   assert((Args.size() == FTy->getNumParams() ||
           (FTy->isVarArg() && Args.size() > FTy->getNumParams())) &&
@@ -457,6 +458,7 @@ void CallInst::init(FunctionType *FTy, Value *Func, ArrayRef<Value *> Args,
            "Calling a function with a bad signature!");
   }
 #endif
+/* End modifications by Thomas Kowalski for LLVMSQLite */
 
   llvm::copy(Args, op_begin());
 

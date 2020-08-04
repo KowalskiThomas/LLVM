@@ -354,6 +354,7 @@ def LLVM_CallOp : LLVM_Op<"call">,
       result.addAttributes(attributes);
       result.addOperands(operands);
     }]>,
+/* Begin modifications by Thomas Kowalski for LLVMSQLite */
     OpBuilder<
             "Builder *builder, OperationState &result, Value func,"
             "ValueRange operands, ArrayRef<NamedAttribute> attributes = {}",
@@ -367,6 +368,7 @@ def LLVM_CallOp : LLVM_Op<"call">,
         result.addOperands(operands);
         }]>
     ];
+/* End modifications by Thomas Kowalski for LLVMSQLite */
   let verifier = [{
     if (getNumResults() > 1)
       return emitOpError("must have 0 or 1 result");
@@ -807,6 +809,7 @@ def LLVM_Prefetch : LLVM_ZeroResultIntrOp<"prefetch", [0]>,
                                LLVM_Type:$hint, LLVM_Type:$cache)>;
 def LLVM_SqrtOp : LLVM_UnaryIntrinsicOp<"sqrt">;
 
+/* Begin modifications by Thomas Kowalski for LLVMSQLite */
 def LLVM_StackSaveOp : LLVM_NoArgsIntrinsicOp<"stacksave">;
 def LLVM_StackRestoreOp : LLVM_ZeroResultIntrOp<"stackrestore">,
                             Arguments<(ins LLVM_Type:$state)>;
@@ -819,6 +822,7 @@ def LLVM_MemCpyOp : LLVM_MemCpyLikeOp<"memcpy">,
 
 def LLVM_MemCpyInlineOp : LLVM_MemCpyLikeOp<"memcpy.inline">,
     Arguments<(ins LLVM_Type:$dest, LLVM_Type:$from, LLVM_Type:$n, LLVM_Type:$isVolatile)>;
+/* End modifications by Thomas Kowalski for LLVMSQLite */
 
 
 // Vector Reductions.

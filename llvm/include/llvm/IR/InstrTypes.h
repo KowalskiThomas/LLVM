@@ -1237,12 +1237,14 @@ public:
   unsigned getNumArgOperands() const { return arg_size(); }
 
   Value *getArgOperand(unsigned i) const {
+/* Begin modifications by Thomas Kowalski for LLVMSQLite */
 #ifndef NDEBUG
     if (i >= getNumArgOperands()) {
       llvm::errs() << "Out of bounds! Operand " << i << " too large for " << *this << '\n';
       llvm::errs().flush();
     }
 #endif
+/* End modifications by Thomas Kowalski for LLVMSQLite */
     assert(i < getNumArgOperands() && "Out of bounds!");
     return getOperand(i);
   }
