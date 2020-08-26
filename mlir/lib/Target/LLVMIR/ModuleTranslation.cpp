@@ -432,6 +432,21 @@ LogicalResult ModuleTranslation::convertOperation(Operation &opInst,
     return success();
   }
 
+/* Begin modifications by Thomas Kowalski for LLVMSQLite */
+/* Taken from https://reviews.llvm.org/D75433 */
+  if (auto switchOp = dyn_cast<LLVM::SwitchOp>(opInst)) {
+    llvm::SwitchInst *switchInst =
+        builder.CreateSwitch(valueMapping.lookup(switchOp.getOperand(0)),
+                             blockMapping[switchOp.getSuccessor(0)],
+                             switchOp.getNumSuccessors() - 1);
+    for (unsigned i = 1; i < switchOp.getNumSuccessors(); i++)
+          switchInst->addCase(
+          cast<llvm::ConstantInt>(valueMapping.lookup(switchOp.getOperand(i))),
+          blockMapping[switchOp.getSuccessor(i)]);
+    return success();
+  }
+/* End modifications by Thomas Kowalski for LLVMSQLite */
+
   // Emit addressof.  We need to look up the global value referenced by the
   // operation and store it in the MLIR-to-LLVM value mapping.  This does not
   // emit any LLVM instruction.

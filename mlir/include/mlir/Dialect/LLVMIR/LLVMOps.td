@@ -378,6 +378,17 @@ def LLVM_CallOp : LLVM_Op<"call">,
   let printer = [{ printCallOp(p, *this); }];
 }
 
+/* Begin modifications by Thomas Kowalski for LLVMSQLite */
+/* Taken from https://reviews.llvm.org/D75433 */
+def LLVM_SwitchOp : LLVM_TerminatorOp<"switch", []> {
+  let arguments = (ins Variadic<LLVM_Type>:$args);
+  let successors = (successor VariadicSuccessor<AnySuccessor>:$destinations);
+  // let parser = [{ return parseSwitchOp(parser, result); }];
+  // let printer = [{ printSwitchOp(p, *this); }];
+  // let verifier = [{ return ::verify(*this); }];
+}
+/* End modifications by Thomas Kowalski for LLVMSQLite */
+
 def LLVM_ExtractElementOp : LLVM_OneResultOp<"extractelement", [NoSideEffect]>,
                           Arguments<(ins LLVM_Type:$vector,
                                      LLVM_Type:$position)> {
